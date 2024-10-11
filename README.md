@@ -1,61 +1,151 @@
-# 🚀 Getting started with Strapi
+# Chat Application Backend
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
+This repository contains the backend code for a chat application built using [Strapi](https://strapi.io/), a headless CMS that enables the creation and management of APIs quickly and efficiently.
 
-### `develop`
+## Table of Contents
 
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Running the Application](#running-the-application)
+- [API Endpoints](#api-endpoints)
+- [WebSocket Integration](#websocket-integration)
+- [Testing WebSocket](#testing-websocket)
+- [License](#license)
 
+## Features
+
+- User authentication and management
+- Chat messaging functionality
+- WebSocket support for real-time communication
+- Chat session persistence in a local database
+- Support for handling user disconnections and logging events
+
+## Technologies Used
+
+- [Strapi](https://strapi.io/) - Headless CMS
+- Node.js - JavaScript runtime
+- WebSocket - Real-time communication
+- PostgreSQL / MongoDB - Database (configure as per your choice)
+
+## Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone <your-repo-url>
+   cd <your-repo-directory>
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Configure your database connection in the `config/database.js` file based on your preferred database (PostgreSQL or MongoDB).
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file in the root directory and set the following variables:
+
+```env
+DATABASE_URL=your_database_url
+JWT_SECRET=your_jwt_secret
 ```
+
+Make sure to replace the values with your actual database connection string and JWT secret.
+
+## Running the Application
+
+To run the Strapi application in development mode, use the following command:
+
+```bash
 npm run develop
-# or
-yarn develop
 ```
 
-### `start`
+Your Strapi application will be available at `http://localhost:1337`.
 
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-start)
+## API Endpoints
 
+### Authentication
+
+- **Login**
+
+  - **Endpoint**: `POST /api/auth/local`
+  - **Request Body**: 
+    ```json
+    {
+      "identifier": "user_email_or_username",
+      "password": "user_password"
+    }
+    ```
+  - **Response**: Returns a JWT token upon successful login.
+
+### Chat Sessions
+
+- **Create Chat Session**
+
+  - **Endpoint**: `POST /api/chat-sessions`
+  - **Request Body**: 
+    ```json
+    {
+      "message": "Chat message content",
+      "userId": "associated_user_id"
+    }
+    ```
+
+## WebSocket Integration
+
+The backend supports WebSocket communication for real-time messaging. When a client connects, they can send messages, and the server will echo back the same messages. On disconnection, a message will be logged in the chat sessions.
+
+### WebSocket Server Setup
+
+Ensure that the WebSocket server is properly configured in your Strapi application. The WebSocket server is set to listen for incoming connections and handle message events.
+
+#### Example WebSocket Code
+
+```javascript
+const wss = new WebSocket.Server({ noServer: true });
+
+wss.on('connection', (ws) => {
+  ws.on('message', async (message) => {
+    const parsedMessage = JSON.parse(message);
+    
+    const userId = parsedMessage.userId; // Extract userId from the message
+    const chatMessage = parsedMessage.content; // Extract message content
+
+    if (chatMessage) {
+      // Echo back the same message
+      ws.send(`Server received: ${chatMessage}`);
+
+      // Save the message to Strapi
+      await strapi.entityService.create("api::chat-session.chat-session", {
+        data: {
+          message: chatMessage,
+          userId: userId,
+          timestamp: new Date(),
+        },
+      });
+    }
+  });
+
+  ws.send('Welcome to the WebSocket server!');
+});
 ```
-npm run start
-# or
-yarn start
-```
 
-### `build`
+## Testing WebSocket
 
-Build your admin panel. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-build)
+You can use [Postman](https://www.postman.com/) to test WebSocket connections by following these steps:
 
-```
-npm run build
-# or
-yarn build
-```
+1. Open Postman.
+2. Create a new WebSocket request by selecting the "WebSocket" tab.
+3. Enter the WebSocket URL: `ws://localhost:1337`.
+4. Send messages and observe responses.
 
-## ⚙️ Deployment
+## License
 
-Strapi gives you many possible deployment options for your project including [Strapi Cloud](https://cloud.strapi.io). Browse the [deployment section of the documentation](https://docs.strapi.io/dev-docs/deployment) to find the best solution for your use case.
-
-```
-yarn strapi deploy
-```
-
-## 📚 Learn more
-
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://strapi.io/blog) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
-
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
-
-## ✨ Community
-
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
-
----
-
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
