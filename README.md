@@ -34,8 +34,8 @@ This repository contains the backend code for a chat application built using [St
 1. Clone the repository:
 
    ```bash
-   git clone <your-repo-url>
-   cd <your-repo-directory>
+   git clone [<your-repo-url>](https://github.com/fan-of-stl/chatapp.git)
+   cd chatapp
    ```
 
 2. Install dependencies:
