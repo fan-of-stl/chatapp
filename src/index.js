@@ -24,15 +24,20 @@ module.exports = {
       let userId;
 
       ws.on("message", async (message) => {
-        
         const parsedMessage = JSON.parse(message.toString());
 
-       
         if (parsedMessage.action === "connect") {
           userId = parsedMessage.userId;
           console.log(`User connected: ${userId}`);
+
+          // Send welcome message as JSON
+          ws.send(
+            JSON.stringify({
+              action: "welcome",
+              content: "Welcome to the WebSocket server!",
+            })
+          );
         } else {
-          
           const chatMessage = parsedMessage.content;
 
           await strapi.entityService.create("api::chat-session.chat-session", {
@@ -43,14 +48,11 @@ module.exports = {
             },
           });
 
-          
           ws.send(JSON.stringify({ action: "message", content: chatMessage }));
           console.log({ action: "message", content: chatMessage });
-          
         }
       });
 
-      
       ws.on("close", async () => {
         console.log(`User disconnected: ${userId}`);
 
@@ -62,8 +64,6 @@ module.exports = {
           },
         });
       });
-
-      ws.send("Welcome to the WebSocket server!");
     });
 
     strapi.server.httpServer.on("upgrade", (request, socket, head) => {
