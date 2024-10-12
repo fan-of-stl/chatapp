@@ -24,13 +24,13 @@ module.exports = {
     // Determine whether running in production or development
     const isProduction = process.env.NODE_ENV === "production";
 
-    // SSL options for HTTPS (production)
-    const sslOptions = isProduction
-      ? {
-          cert: fs.readFileSync(path.resolve(__dirname, "../ssl/cert.pem")),
-          key: fs.readFileSync(path.resolve(__dirname, "../ssl/key.pem")),
-        }
-      : {};
+    // // SSL options for HTTPS (production)
+    // const sslOptions = isProduction
+    //   ? {
+    //       cert: fs.readFileSync(path.resolve(__dirname, "../ssl/cert.pem")),
+    //       key: fs.readFileSync(path.resolve(__dirname, "../ssl/key.pem")),
+    //     }
+    //   : {};
 
     // Initialize the WebSocket server
     const wss = new WebSocket.Server({ noServer: true });
