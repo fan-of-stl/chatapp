@@ -1,6 +1,9 @@
 "use strict";
-const webSocket = require("ws");
-const strapi = require("@strapi/strapi");
+
+const WebSocket = require("ws");
+const fs = require("fs");
+const path = require("path");
+
 module.exports = {
   /**
    * An asynchronous register function that runs before
@@ -18,7 +21,19 @@ module.exports = {
    * run jobs, or perform some special logic.
    */
   bootstrap({ strapi }) {
-    const wss = new webSocket.Server({ noServer: true });
+    // Determine whether running in production or development
+    const isProduction = process.env.NODE_ENV === "production";
+
+    // SSL options for HTTPS (production)
+    const sslOptions = isProduction
+      ? {
+          cert: fs.readFileSync(path.resolve(__dirname, "../ssl/cert.pem")),
+          key: fs.readFileSync(path.resolve(__dirname, "../ssl/key.pem")),
+        }
+      : {};
+
+    // Initialize the WebSocket server
+    const wss = new WebSocket.Server({ noServer: true });
 
     wss.on("connection", (ws, req) => {
       let userId;
@@ -66,6 +81,7 @@ module.exports = {
       });
     });
 
+    // Handling HTTP and HTTPS upgrade requests
     strapi.server.httpServer.on("upgrade", (request, socket, head) => {
       if (request.url === "/ws") {
         wss.handleUpgrade(request, socket, head, (ws) => {
@@ -76,6 +92,11 @@ module.exports = {
       }
     });
 
-    strapi.log.info("WebSocket server initialized");
+    // Log server type (HTTP/HTTPS)
+    if (isProduction) {
+      strapi.log.info("WebSocket server initialized with SSL (wss://)");
+    } else {
+      strapi.log.info("WebSocket server initialized (ws://)");
+    }
   },
 };
